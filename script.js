@@ -42,7 +42,7 @@ const historyChart = new Chart(ctx, {
         labels: historyLabels,
         datasets: [
             {
-                label: 'Kadar Asap',
+                label: 'Kadar Asap (ppm)',
                 data: historyDataAsap,
                 borderColor: 'rgba(161, 161, 170, 1)', // Abu-abu
                 backgroundColor: 'rgba(161, 161, 170, 0.1)',
@@ -142,7 +142,8 @@ onValue(airQualityRef, (snapshot) => {
         elSuhu.innerText = data.suhu !== undefined ? data.suhu.toFixed(1) : '0';
         elKelembaban.innerText = data.kelembaban !== undefined ? data.kelembaban.toFixed(1) : '0';
         
-        const kadarAsap = data.kadarAsap || 0;
+        const rawAsap = data.kadarAsap || 0;
+        const kadarAsap = Number(rawAsap).toFixed(1);
         const pm25Value = data.partikelDebu?.PM25 || 0;
         
         elAsap.innerText = kadarAsap;
