@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Kualitas Udara</title>
+    <!-- FontAwesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js untuk Grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header class="header">
+        <div class="title-section">
+            <h1><i class="fas fa-wind"></i> IoT Air Quality Monitoring</h1>
+            <p>Sistem Monitoring & Control Kualitas Udara Smoking Room</p>
+            <div class="timestamp-info">
+                <i class="far fa-clock"></i> Update terakhir: <span id="last-update">-</span>
+            </div>
+        </div>
+        <div class="badge-conn disconnected" id="conn-status">
+            <i class="fas fa-circle-notch fa-spin"></i> Menghubungkan...
+        </div>
+    </header>
+
+    <!-- Air Status Badge -->
+    <div class="air-status-wrapper">
+        <h2>Status Kualitas Udara Saat Ini</h2>
+        <div id="status-level-badge">MENUNGGU DATA</div>
+    </div>
+
+    <!-- Sensor Cards -->
+    <div class="grid-cards">
+        <!-- Suhu -->
+        <div class="card">
+            <div class="card-header">
+                <span>Suhu Ruangan</span>
+                <i class="fas fa-thermometer-half icon-suhu"></i>
+            </div>
+            <div class="card-value">
+                <span id="val-suhu">0.0</span><span class="card-unit"> °C</span>
+            </div>
+        </div>
+
+        <!-- Kelembaban -->
+        <div class="card">
+            <div class="card-header">
+                <span>Kelembaban</span>
+                <i class="fas fa-tint icon-kelembaban"></i>
+            </div>
+            <div class="card-value">
+                <span id="val-kelembaban">0.0</span><span class="card-unit"> %</span>
+            </div>
+        </div>
+
+        <!-- Kadar Asap -->
+        <div class="card">
+            <div class="card-header">
+                <span>Kadar Asap</span>
+                <i class="fas fa-smog icon-asap"></i>
+            </div>
+            <div class="card-value">
+                <span id="val-asap">0</span><span class="card-unit"> / 100</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="bar-asap" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- PM2.5 -->
+        <div class="card">
+            <div class="card-header">
+                <span>Partikel PM2.5</span>
+                <i class="fas fa-lungs icon-pm25"></i>
+            </div>
+            <div class="card-value">
+                <span id="val-pm25">0</span><span class="card-unit"> µg/m³</span>
+            </div>
+            <div class="card-footer">
+                <span>Status Partikel:</span>
+                <span id="val-pm25-status" style="font-weight: bold; color: var(--text-muted);">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section: Chart -->
+    <div class="card">
+        <div class="section-title">
+            <span><i class="fas fa-chart-line"></i> Grafik Real-time (10 Data Terakhir)</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="historyChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- SCRIPT FIREBASE & LOGIC WEB                    -->
+<!-- ============================================== -->
+<script type="module" src="script.js"></script>
+</body>
+</html>
