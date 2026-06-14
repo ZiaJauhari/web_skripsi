@@ -78,12 +78,18 @@ const historyChart = new Chart(ctx, {
         scales: {
             y: {
                 beginAtZero: true,
-                grid: { color: '#334155' },
-                ticks: { color: '#94a3b8' }
+                grid: { color: '#1e293b' },
+                ticks: { 
+                    color: '#64748b',
+                    font: { family: "'Outfit', sans-serif" }
+                }
             },
             x: {
-                grid: { color: '#334155' },
-                ticks: { color: '#94a3b8' }
+                grid: { color: '#1e293b' },
+                ticks: { 
+                    color: '#64748b',
+                    font: { family: "'Outfit', sans-serif" }
+                }
             }
         },
         plugins: {
@@ -92,7 +98,10 @@ const historyChart = new Chart(ctx, {
                 labels: { 
                     color: '#f8fafc', 
                     boxWidth: 15,
-                    font: { size: 11 }
+                    font: { 
+                        size: 11,
+                        family: "'Outfit', sans-serif"
+                    }
                 }
             }
         }

@@ -1,482 +1,424 @@
 :root {
-    --bg-color: #0f172a;
-    --card-bg: #1e293b;
+    --bg-color: #0b0f19;
+    --card-bg: #131c2e;
+    --card-hover-bg: #1a243a;
     --text-main: #f8fafc;
-    --text-muted: #94a3b8;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
     --accent-blue: #38bdf8;
-    --accent-green: #22c55e;
-    --accent-red: #ef4444;
+    --accent-green: #10b981;
+    --accent-red: #f43f5e;
     --accent-orange: #f97316;
-    --border-color: #334155;
+    --accent-purple: #c026d3;
+    --border-color: #1e293b;
+    --card-border: rgba(255, 255, 255, 0.04);
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Outfit', sans-serif;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
 }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
-    padding: 10px;
+    padding: 24px 16px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.03) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.02) 0px, transparent 50%);
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1100px;
+    width: 100%;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.header {
+/* =========================================================
+   DASHBOARD HEADER & OVERVIEW
+   ========================================================= */
+
+.dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    padding: 24px;
+    background: rgba(19, 28, 46, 0.4);
+    border-radius: 16px;
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(10px);
+    gap: 20px;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.brand-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     flex-wrap: wrap;
-    gap: 15px;
 }
 
-.title-section h1 {
-    font-size: 1.5rem;
+.brand-section h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-main);
+    background: linear-gradient(135deg, #f8fafc 30%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-wind-animate {
     color: var(--accent-blue);
-    margin-bottom: 5px;
+    animation: floatWind 3s ease-in-out infinite;
 }
 
-.title-section p {
-    font-size: 0.9rem;
+@keyframes floatWind {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-3px) rotate(10deg); }
+}
+
+.subtitle {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    font-weight: 400;
+}
+
+.timestamp-info {
+    font-size: 0.8rem;
     color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
 }
 
 .badge-conn {
-    padding: 8px 16px;
+    padding: 4px 12px;
     border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    display: flex;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
+    gap: 6px;
+    transition: all 0.3s ease;
 }
 
 .badge-conn.disconnected {
-    background-color: rgba(239, 68, 68, 0.15);
+    background-color: rgba(244, 63, 94, 0.1);
     color: var(--accent-red);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    border: 1px solid rgba(244, 63, 94, 0.2);
 }
 
 .badge-conn.connected {
-    background-color: rgba(34, 197, 94, 0.15);
+    background-color: rgba(16, 185, 129, 0.1);
     color: var(--accent-green);
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-.air-status-wrapper {
+/* Header Right: Air Status Badge */
+.header-right {
+    flex-shrink: 0;
+}
+
+.status-summary-card {
+    background: rgba(15, 23, 42, 0.6);
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
     text-align: center;
-    margin-top: 15px;
-    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.air-status-wrapper h2 {
-    font-size: 1rem;
-    color: var(--text-muted);
-    margin-bottom: 5px;
+.status-label {
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    color: var(--text-muted);
+    font-weight: 600;
 }
 
 #status-level-badge {
-    display: inline-block;
-    padding: 10px 40px;
-    border-radius: 50px;
-    font-size: 2.2rem;
+    font-size: 1.4rem;
     font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 4px 16px;
+    border-radius: 8px;
+    background-color: var(--border-color);
+    color: var(--text-light);
+    transition: all 0.4s ease;
+}
+
+#status-level-badge.status-baik {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+#status-level-badge.status-buruk {
+    background-color: rgba(244, 63, 94, 0.15);
+    color: var(--accent-red);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+    text-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+}
+
+/* =========================================================
+   DASHBOARD SECTIONS & CARDS
+   ========================================================= */
+
+.section-divider {
+    font-size: 0.85rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
-    background-color: var(--border-color); /* Default unknown */
-    color: white;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
 }
 
-.status-baik {
-    background-color: var(--accent-green) !important;
-    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3) !important;
-}
-
-.status-buruk {
-    background-color: var(--accent-red) !important;
-    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3) !important;
+.section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
 }
 
 .grid-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 15px;
-    margin-bottom: 15px;
+    gap: 16px;
+}
+
+.grid-climate {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-pollutants {
+    grid-template-columns: repeat(3, 1fr);
 }
 
 .card {
     background-color: var(--card-bg);
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    border: 1px solid var(--border-color);
-    width: 100%;
-    min-width: 0;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--card-border);
+    position: relative;
     overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
+
+.card:hover {
+    transform: translateY(-2px);
+    background-color: var(--card-hover-bg);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Ambient glow effect for climate cards */
+.climate-card {
+    z-index: 1;
+}
+
+.card-glow-orange, .card-glow-blue {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    filter: blur(50px);
+    opacity: 0.08;
+    top: -50px;
+    right: -50px;
+    z-index: -1;
+}
+.card-glow-orange { background-color: var(--accent-orange); }
+.card-glow-blue { background-color: var(--accent-blue); }
 
 .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    color: var(--text-muted);
-    font-weight: 600;
-    font-size: 1.1rem;
+    color: var(--text-light);
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+}
+
+.card-header i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.card:hover .card-header i {
+    transform: scale(1.1);
 }
 
 .card-value {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 5px;
+    font-size: 2.2rem;
+    font-weight: 700;
     color: var(--text-main);
+    line-height: 1.1;
+    display: flex;
+    align-items: baseline;
 }
 
 .card-unit {
     font-size: 1rem;
     color: var(--text-muted);
-    font-weight: normal;
+    font-weight: 400;
+    margin-left: 4px;
 }
 
 .card-footer {
-    font-size: 0.85rem;
-    margin-top: 10px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    font-size: 0.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.icon-suhu { color: var(--accent-orange); }
-.icon-kelembaban { color: var(--accent-blue); }
-.icon-asap { color: #a1a1aa; }
-.icon-pm25 { color: var(--accent-green); }
-.icon-pm10 { color: #a3e635; }
-
-.ispu-param-label {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
+.status-indicator {
+    font-weight: 600;
 }
 
+/* Progress bar for Kadar Asap */
 .progress-container {
     width: 100%;
-    height: 6px;
+    height: 5px;
     background-color: var(--border-color);
-    border-radius: 3px;
-    margin-top: 15px;
+    border-radius: 10px;
+    margin-top: 16px;
     overflow: hidden;
 }
 
 .progress-bar {
     height: 100%;
-    border-radius: 3px;
-    transition: width 0.5s ease, background-color 0.5s ease;
-    background-color: var(--accent-green);
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
 }
 
-.grid-bottom {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-}
-
-@media (max-width: 992px) {
-    .grid-bottom {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Toggle Switch */
-.control-group {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.control-group:first-child {
-    padding-top: 0;
-}
-
-.control-info h3 {
-    font-size: 1rem;
-    color: var(--text-main);
-    margin-bottom: 3px;
-}
-
-.control-info p {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 26px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--border-color);
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: var(--accent-blue);
-}
-
-input:checked + .slider:before {
-    transform: translateX(24px);
-}
-
-input:disabled + .slider {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Forms */
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px 12px;
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-}
-
-.btn {
-    background-color: var(--accent-blue);
-    color: white;
-    border: none;
-    padding: 12px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    width: 100%;
-    transition: background-color 0.3s;
-    margin-top: 10px;
-}
-
-.btn:hover {
-    background-color: #0284c7;
-}
-
-.btn:disabled {
-    background-color: var(--border-color);
-    cursor: not-allowed;
-    color: var(--text-muted);
-}
-
-.chart-container {
-    position: relative;
-    height: 200px;
-    width: 100%;
-    margin-top: 10px;
-}
-
-.section-title {
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    color: var(--text-main);
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.relay-status {
-    font-size: 0.85rem;
-    padding: 4px 10px;
-    border-radius: 12px;
-    background-color: var(--bg-color);
-    color: var(--text-muted);
-}
-
-.timestamp-info {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: 10px;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .badge-conn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    #status-level-badge {
-        font-size: 1.5rem;
-        padding: 12px 20px;
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        border-radius: 20px;
-    }
-
-    .air-status-wrapper h2 {
-        font-size: 0.9rem;
-    }
-
-    .title-section h1 {
-        font-size: 1.3rem;
-    }
-
-    .card-value {
-        font-size: 2rem;
-    }
-
-    .card-header {
-        font-size: 1rem;
-    }
-
-    .section-title {
-        font-size: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .chart-container {
-        height: 250px;
-    }
-}
+/* Card Icons Colors */
+.icon-suhu { color: var(--accent-orange); }
+.icon-kelembaban { color: var(--accent-blue); }
+.icon-asap { color: var(--text-light); }
+.icon-pm25 { color: var(--accent-green); }
+.icon-pm10 { color: #a3e635; }
 
 /* =========================================================
-   ISPU - Indeks Standar Pencemar Udara
+   ISPU SECTION
    ========================================================= */
 
 .ispu-card {
-    margin-bottom: 15px;
+    padding: 24px;
 }
 
-.ispu-ref-badge {
-    font-size: 0.72rem;
-    padding: 3px 10px;
-    border-radius: 20px;
-    background-color: rgba(56, 189, 248, 0.12);
-    color: var(--accent-blue);
-    border: 1px solid rgba(56, 189, 248, 0.3);
+.ispu-card-header {
+    margin-bottom: 24px;
+}
+
+.ispu-card-title h2 {
+    font-size: 1.2rem;
     font-weight: 600;
-    white-space: nowrap;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .ispu-subtitle {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    margin-bottom: 20px;
-    margin-top: -4px;
+    margin-top: 4px;
 }
 
-.ispu-content {
+.ispu-layout {
     display: flex;
+    gap: 32px;
     align-items: center;
-    gap: 40px;
     flex-wrap: wrap;
 }
 
-/* --- Ring Gauge --- */
+.ispu-gauges-container {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    flex: 1;
+}
+
 .ispu-gauge-wrap {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    min-width: 150px;
+    min-width: 140px;
+}
+
+.ispu-param-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-light);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 2px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
 }
 
 .ispu-ring {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     background: conic-gradient(var(--border-color) 360deg);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.6s ease;
+    transition: background 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-}
-
-/* Glow efek melingkar */
-.ispu-ring::before {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    background: inherit;
-    filter: blur(8px);
-    opacity: 0.35;
-    z-index: 0;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2) inset;
 }
 
 .ispu-ring-inner {
-    width: 100px;
-    height: 100px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
     background-color: var(--card-bg);
     display: flex;
@@ -488,33 +430,35 @@ input:disabled + .slider {
 }
 
 .ispu-value {
-    font-size: 2.4rem;
-    font-weight: 800;
+    font-size: 2.1rem;
+    font-weight: 700;
     line-height: 1;
     transition: color 0.4s ease;
 }
 
 .ispu-unit-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    letter-spacing: 1px;
     font-weight: 600;
-    margin-top: 2px;
 }
 
 .ispu-kategori-label {
-    font-size: 1rem;
-    font-weight: 700;
+    font-size: 0.9rem;
+    font-weight: 600;
     text-align: center;
+    min-height: 20px;
     transition: color 0.4s ease;
-    letter-spacing: 0.5px;
 }
 
-/* --- Legenda --- */
+/* Legenda Kategori */
 .ispu-legend {
-    flex: 1;
-    min-width: 200px;
+    flex: 1.2;
+    min-width: 280px;
+    background: rgba(15, 23, 42, 0.4);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
 }
 
 .ispu-legend-title {
@@ -526,50 +470,131 @@ input:disabled + .slider {
     font-weight: 600;
 }
 
-.ispu-legend-items {
+.ispu-legend-grid {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
 .ispu-legend-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 16px 80px 1fr;
     align-items: center;
-    gap: 10px;
-    font-size: 0.88rem;
-    color: var(--text-main);
-    padding: 6px 10px;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    padding: 6px 12px;
     border-radius: 6px;
-    background-color: rgba(255,255,255,0.03);
-    border: 1px solid var(--border-color);
-    transition: background-color 0.2s;
-}
-
-.ispu-legend-item:hover {
-    background-color: rgba(255,255,255,0.07);
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
 .ispu-dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-    flex-shrink: 0;
-    box-shadow: 0 0 6px currentColor;
 }
 
-@media (max-width: 600px) {
-    .ispu-content {
+.ispu-range {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.ispu-cat-name {
+    font-weight: 500;
+}
+
+/* Legend items colors mapping */
+.cat-baik .ispu-dot { background-color: var(--accent-green); }
+.cat-baik .ispu-cat-name { color: var(--accent-green); }
+
+.cat-sedang .ispu-dot { background-color: #a3e635; }
+.cat-sedang .ispu-cat-name { color: #a3e635; }
+
+.cat-tidak-sehat .ispu-dot { background-color: var(--accent-orange); }
+.cat-tidak-sehat .ispu-cat-name { color: var(--accent-orange); }
+
+.cat-sangat-tidak-sehat .ispu-dot { background-color: var(--accent-purple); }
+.cat-sangat-tidak-sehat .ispu-cat-name { color: var(--accent-purple); }
+
+.cat-berbahaya .ispu-dot { background-color: var(--accent-red); }
+.cat-berbahaya .ispu-cat-name { color: var(--accent-red); }
+
+/* =========================================================
+   CHART SECTION
+   ========================================================= */
+
+.chart-card {
+    padding: 24px;
+}
+
+.section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-main);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-container {
+    position: relative;
+    height: 260px;
+    width: 100%;
+}
+
+/* =========================================================
+   RESPONSIVENESS & MEDIA QUERIES
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .dashboard-header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .brand-section {
+        justify-content: center;
     }
 
-    .ispu-gauge-wrap {
-        width: 100%;
-        align-items: center;
+    .timestamp-info {
+        justify-content: center;
     }
 
-    .ispu-ref-badge {
-        display: none;
+    .ispu-layout {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 24px;
+    }
+    
+    .ispu-legend {
+        width: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 16px 12px;
+    }
+
+    .grid-climate {
+        grid-template-columns: 1fr;
+    }
+
+    .grid-pollutants {
+        grid-template-columns: 1fr;
+    }
+
+    .card-value {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ispu-gauges-container {
+        gap: 16px;
     }
 }

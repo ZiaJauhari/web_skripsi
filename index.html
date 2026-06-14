@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoring Kualitas Udara</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome untuk Ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js untuk Grafik -->
@@ -13,25 +17,37 @@
 <body>
 
 <div class="container">
-    <!-- Header -->
-    <header class="header">
-        <div class="title-section">
-            <h1><i class="fas fa-wind"></i> IoT Air Quality Monitoring</h1>
-            <p>Sistem Monitoring & Control Kualitas Udara Smoking Room</p>
+    <!-- Top Dashboard Header & Status Overview -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <div class="brand-section">
+                <h1><i class="fas fa-wind icon-wind-animate"></i> IoT Air Quality</h1>
+                <span class="badge-conn disconnected" id="conn-status">
+                    <i class="fas fa-circle-notch fa-spin"></i> Menghubungkan...
+                </span>
+            </div>
+            <p class="subtitle">Sistem Monitoring & Control Kualitas Udara Smoking Room</p>
             <div class="timestamp-info">
-                <i class="far fa-clock"></i> Update terakhir: <span id="last-update">-</span>
+                <i class="far fa-clock"></i> Terakhir Update: <span id="last-update">-</span>
             </div>
         </div>
-        <div class="badge-conn disconnected" id="conn-status">
-            <i class="fas fa-circle-notch fa-spin"></i> Menghubungkan...
+        
+        <div class="header-right">
+            <div class="status-summary-card">
+                <span class="status-label">Status Kualitas Udara</span>
+                <div id="status-level-badge">MENUNGGU DATA</div>
+            </div>
         </div>
     </header>
 
-
-    <!-- Sensor Cards -->
-    <div class="grid-cards">
+    <!-- Room Climate Section (2 Cards) -->
+    <div class="section-divider">
+        <span><i class="fas fa-thermometer-half"></i> Iklim Ruangan</span>
+    </div>
+    <div class="grid-cards grid-climate">
         <!-- Suhu -->
-        <div class="card">
+        <div class="card climate-card">
+            <div class="card-glow-orange"></div>
             <div class="card-header">
                 <span>Suhu Ruangan</span>
                 <i class="fas fa-thermometer-half icon-suhu"></i>
@@ -42,7 +58,8 @@
         </div>
 
         <!-- Kelembaban -->
-        <div class="card">
+        <div class="card climate-card">
+            <div class="card-glow-blue"></div>
             <div class="card-header">
                 <span>Kelembaban</span>
                 <i class="fas fa-tint icon-kelembaban"></i>
@@ -51,9 +68,15 @@
                 <span id="val-kelembaban">0.0</span><span class="card-unit"> %</span>
             </div>
         </div>
+    </div>
 
+    <!-- Air Pollutants Section (3 Cards) -->
+    <div class="section-divider">
+        <span><i class="fas fa-shield-virus"></i> Konsentrasi Polutan</span>
+    </div>
+    <div class="grid-cards grid-pollutants">
         <!-- Kadar Asap -->
-        <div class="card">
+        <div class="card pollutant-card">
             <div class="card-header">
                 <span>Kadar Asap</span>
                 <i class="fas fa-smog icon-asap"></i>
@@ -67,7 +90,7 @@
         </div>
 
         <!-- PM2.5 -->
-        <div class="card">
+        <div class="card pollutant-card">
             <div class="card-header">
                 <span>Partikel PM2.5</span>
                 <i class="fas fa-lungs icon-pm25"></i>
@@ -77,12 +100,12 @@
             </div>
             <div class="card-footer">
                 <span>Status Partikel:</span>
-                <span id="val-pm25-status" style="font-weight: bold; color: var(--text-muted);">-</span>
+                <span id="val-pm25-status" class="status-indicator">-</span>
             </div>
         </div>
 
         <!-- PM10 -->
-        <div class="card">
+        <div class="card pollutant-card">
             <div class="card-header">
                 <span>Partikel PM10</span>
                 <i class="fas fa-wind icon-pm10"></i>
@@ -92,64 +115,75 @@
             </div>
             <div class="card-footer">
                 <span>Status Partikel:</span>
-                <span id="val-pm10-status" style="font-weight: bold; color: var(--text-muted);">-</span>
+                <span id="val-pm10-status" class="status-indicator">-</span>
             </div>
         </div>
     </div>
 
     <!-- ISPU Section -->
     <div class="card ispu-card">
-        <div class="section-title">
-            <span><i class="fas fa-smog"></i> Indeks Standar Pencemar Udara (ISPU)</span>
-            <span class="ispu-ref-badge">Permen LHK No. 14 Tahun 2020</span>
+        <div class="ispu-card-header">
+            <div class="ispu-card-title">
+                <h2><i class="fas fa-chart-bar"></i> Indeks Standar Pencemar Udara (ISPU)</h2>
+                <p class="ispu-subtitle">Berdasarkan Permen LHK No. 14 Tahun 2020</p>
+            </div>
         </div>
-        <p class="ispu-subtitle">Parameter: PM<sub>2.5</sub> &amp; PM<sub>10</sub> &mdash; dihitung dari konsentrasi partikel debu terukur sensor</p>
-        <div class="ispu-content">
-            <!-- Ring Gauge PM2.5 -->
-            <div class="ispu-gauge-wrap">
-                <div class="ispu-param-label">PM<sub>2.5</sub></div>
-                <div class="ispu-ring" id="ispu-ring-pm25">
-                    <div class="ispu-ring-inner">
-                        <span class="ispu-value" id="val-ispu-pm25">-</span>
-                        <span class="ispu-unit-label">ISPU</span>
+        
+        <div class="ispu-layout">
+            <div class="ispu-gauges-container">
+                <!-- Ring Gauge PM2.5 -->
+                <div class="ispu-gauge-wrap">
+                    <span class="ispu-param-badge">PM<sub>2.5</sub></span>
+                    <div class="ispu-ring" id="ispu-ring-pm25">
+                        <div class="ispu-ring-inner">
+                            <span class="ispu-value" id="val-ispu-pm25">-</span>
+                            <span class="ispu-unit-label">ISPU</span>
+                        </div>
                     </div>
+                    <div class="ispu-kategori-label" id="val-ispu-kategori-pm25">Menunggu data...</div>
                 </div>
-                <div class="ispu-kategori-label" id="val-ispu-kategori-pm25">Menunggu data...</div>
-            </div>
-            <!-- Ring Gauge PM10 -->
-            <div class="ispu-gauge-wrap">
-                <div class="ispu-param-label">PM<sub>10</sub></div>
-                <div class="ispu-ring" id="ispu-ring-pm10">
-                    <div class="ispu-ring-inner">
-                        <span class="ispu-value" id="val-ispu-pm10">-</span>
-                        <span class="ispu-unit-label">ISPU</span>
+
+                <!-- Ring Gauge PM10 -->
+                <div class="ispu-gauge-wrap">
+                    <span class="ispu-param-badge">PM<sub>10</sub></span>
+                    <div class="ispu-ring" id="ispu-ring-pm10">
+                        <div class="ispu-ring-inner">
+                            <span class="ispu-value" id="val-ispu-pm10">-</span>
+                            <span class="ispu-unit-label">ISPU</span>
+                        </div>
                     </div>
+                    <div class="ispu-kategori-label" id="val-ispu-kategori-pm10">Menunggu data...</div>
                 </div>
-                <div class="ispu-kategori-label" id="val-ispu-kategori-pm10">Menunggu data...</div>
             </div>
+
             <!-- Legenda Kategori -->
             <div class="ispu-legend">
-                <div class="ispu-legend-title">Rentang Kategori</div>
-                <div class="ispu-legend-items">
-                    <div class="ispu-legend-item">
-                        <span class="ispu-dot" style="background:#22c55e"></span>
-                        <span><strong>1 – 50</strong> &nbsp;Baik</span>
+                <div class="ispu-legend-title">Panduan Kategori ISPU</div>
+                <div class="ispu-legend-grid">
+                    <div class="ispu-legend-item cat-baik">
+                        <span class="ispu-dot"></span>
+                        <span class="ispu-range">0 – 50</span>
+                        <span class="ispu-cat-name">Baik</span>
                     </div>
-                    <div class="ispu-legend-item">
-                        <span class="ispu-dot" style="background:#a3e635"></span>
-                        <span><strong>51 – 100</strong> &nbsp;Sedang</span>
+                    <div class="ispu-legend-item cat-sedang">
+                        <span class="ispu-dot"></span>
+                        <span class="ispu-range">51 – 100</span>
+                        <span class="ispu-cat-name">Sedang</span>
                     </div>
-                    <div class="ispu-legend-item">
-                        <span class="ispu-dot" style="background:#f97316"></span>
-                        <span><strong>101 – 200</strong> &nbsp;Tidak Sehat</span>
+                    <div class="ispu-legend-item cat-tidak-sehat">
+                        <span class="ispu-dot"></span>
+                        <span class="ispu-range">101 – 200</span>
+                        <span class="ispu-cat-name">Tidak Sehat</span>
                     </div>
-                    <div class="ispu-legend-item">
-                        <span class="ispu-dot" style="background:#c026d3"></span>
-                        <span><strong>201 – 300</strong> &nbsp;Sangat Tidak Sehat</span>
+                    <div class="ispu-legend-item cat-sangat-tidak-sehat">
+                        <span class="ispu-dot"></span>
+                        <span class="ispu-range">201 – 300</span>
+                        <span class="ispu-cat-name">Sangat Tidak Sehat</span>
                     </div>
-                    <div class="ispu-legend-item">
-                        <span class="ispu-dot" style="background:#ef4444"></span>
-                        <span><strong>301 – 500</strong> &nbsp;Berbahaya</span>
+                    <div class="ispu-legend-item cat-berbahaya">
+                        <span class="ispu-dot"></span>
+                        <span class="ispu-range">301 – 500+</span>
+                        <span class="ispu-cat-name">Berbahaya</span>
                     </div>
                 </div>
             </div>
@@ -157,19 +191,13 @@
     </div>
 
     <!-- Bottom Section: Chart -->
-    <div class="card">
+    <div class="card chart-card">
         <div class="section-title">
-            <span><i class="fas fa-chart-line"></i> Grafik Real-time (10 Data Terakhir)</span>
+            <span><i class="fas fa-chart-line"></i> Tren Grafik Real-time (10 Data Terakhir)</span>
         </div>
         <div class="chart-container">
             <canvas id="historyChart"></canvas>
         </div>
-    </div>
-
-    <!-- Air Status Badge -->
-    <div class="air-status-wrapper">
-        <h2>Status Kualitas Udara Saat Ini</h2>
-        <div id="status-level-badge">MENUNGGU DATA</div>
     </div>
 </div>
 
