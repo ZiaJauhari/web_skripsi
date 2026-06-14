@@ -95,6 +95,7 @@ body {
     color: var(--text-main);
     background: linear-gradient(135deg, #f8fafc 30%, #94a3b8 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     display: flex;
     align-items: center;

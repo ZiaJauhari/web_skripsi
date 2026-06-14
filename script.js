@@ -205,7 +205,7 @@ onValue(airQualityRef, (snapshot) => {
         const pm25Value = data.partikelDebu?.PM25 || 0;
         
         elAsap.innerText = kadarAsap;
-        elPm25.innerText = pm25Value;
+        elPm25.innerText = Number(pm25Value).toFixed(1);
 
         // Update Progress Bar Asap (Warna menyesuaikan nilai)
         elBarAsap.style.width = `${Math.min(kadarAsap, 100)}%`;
@@ -221,7 +221,7 @@ onValue(airQualityRef, (snapshot) => {
 
         // Baca nilai PM10
         const pm10Value = data.partikelDebu?.PM10 || 0;
-        elPm10.innerText = pm10Value;
+        elPm10.innerText = Number(pm10Value).toFixed(1);
         const statPM10 = data.partikelDebu?.statusPM10 || '-';
         elPm10Status.innerText = statPM10;
         elPm10Status.style.color = statPM10.toLowerCase() === 'sehat'
