@@ -80,6 +80,80 @@
                 <span id="val-pm25-status" style="font-weight: bold; color: var(--text-muted);">-</span>
             </div>
         </div>
+
+        <!-- PM10 -->
+        <div class="card">
+            <div class="card-header">
+                <span>Partikel PM10</span>
+                <i class="fas fa-wind icon-pm10"></i>
+            </div>
+            <div class="card-value">
+                <span id="val-pm10">0</span><span class="card-unit"> µg/m³</span>
+            </div>
+            <div class="card-footer">
+                <span>Status Partikel:</span>
+                <span id="val-pm10-status" style="font-weight: bold; color: var(--text-muted);">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ISPU Section -->
+    <div class="card ispu-card">
+        <div class="section-title">
+            <span><i class="fas fa-smog"></i> Indeks Standar Pencemar Udara (ISPU)</span>
+            <span class="ispu-ref-badge">Permen LHK No. 14 Tahun 2020</span>
+        </div>
+        <p class="ispu-subtitle">Parameter: PM<sub>2.5</sub> &amp; PM<sub>10</sub> &mdash; dihitung dari konsentrasi partikel debu terukur sensor</p>
+        <div class="ispu-content">
+            <!-- Ring Gauge PM2.5 -->
+            <div class="ispu-gauge-wrap">
+                <div class="ispu-param-label">PM<sub>2.5</sub></div>
+                <div class="ispu-ring" id="ispu-ring-pm25">
+                    <div class="ispu-ring-inner">
+                        <span class="ispu-value" id="val-ispu-pm25">-</span>
+                        <span class="ispu-unit-label">ISPU</span>
+                    </div>
+                </div>
+                <div class="ispu-kategori-label" id="val-ispu-kategori-pm25">Menunggu data...</div>
+            </div>
+            <!-- Ring Gauge PM10 -->
+            <div class="ispu-gauge-wrap">
+                <div class="ispu-param-label">PM<sub>10</sub></div>
+                <div class="ispu-ring" id="ispu-ring-pm10">
+                    <div class="ispu-ring-inner">
+                        <span class="ispu-value" id="val-ispu-pm10">-</span>
+                        <span class="ispu-unit-label">ISPU</span>
+                    </div>
+                </div>
+                <div class="ispu-kategori-label" id="val-ispu-kategori-pm10">Menunggu data...</div>
+            </div>
+            <!-- Legenda Kategori -->
+            <div class="ispu-legend">
+                <div class="ispu-legend-title">Rentang Kategori</div>
+                <div class="ispu-legend-items">
+                    <div class="ispu-legend-item">
+                        <span class="ispu-dot" style="background:#22c55e"></span>
+                        <span><strong>1 – 50</strong> &nbsp;Baik</span>
+                    </div>
+                    <div class="ispu-legend-item">
+                        <span class="ispu-dot" style="background:#a3e635"></span>
+                        <span><strong>51 – 100</strong> &nbsp;Sedang</span>
+                    </div>
+                    <div class="ispu-legend-item">
+                        <span class="ispu-dot" style="background:#f97316"></span>
+                        <span><strong>101 – 200</strong> &nbsp;Tidak Sehat</span>
+                    </div>
+                    <div class="ispu-legend-item">
+                        <span class="ispu-dot" style="background:#c026d3"></span>
+                        <span><strong>201 – 300</strong> &nbsp;Sangat Tidak Sehat</span>
+                    </div>
+                    <div class="ispu-legend-item">
+                        <span class="ispu-dot" style="background:#ef4444"></span>
+                        <span><strong>301 – 500</strong> &nbsp;Berbahaya</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bottom Section: Chart -->
