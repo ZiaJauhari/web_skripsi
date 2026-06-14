@@ -183,6 +183,10 @@ int g_threshAsapMax    = DEFAULT_ASAP_MAX;
 int g_threshPM25Sehat  = DEFAULT_PM25_TIDAK_SEHAT;
 int g_threshPM10Sehat  = DEFAULT_PM10_TIDAK_SEHAT;
 
+float g_pm25_multiplier   = 1.67f; // Faktor kalibrasi PM2.5 (ref_val / raw_val = 15/9 ≈ 1.67)
+float g_pm10_multiplier   = 2.20f; // Faktor kalibrasi PM10 (ref_val / raw_val = 22/10 = 2.20)
+bool  g_use_humidity_corr = false; // Koreksi kelembapan OFF — agar stabil sejajar detektor fisik
+
 bool g_relayFan   = false;
 bool g_relayPurif = false;
 
@@ -347,10 +351,10 @@ void loop() {
       g_pm10_raw = pm10raw;
 
       float pm25corr = correctParticleHumidity((float)g_pm25_raw, g_kelembaban);
-      g_pm25 = movingAvgPM25(pm25corr);
+      g_pm25 = movingAvgPM25(pm25corr) * g_pm25_multiplier;
 
       float pm10corr = correctParticleHumidity((float)g_pm10_raw, g_kelembaban);
-      g_pm10 = movingAvgPM10(pm10corr);
+      g_pm10 = movingAvgPM10(pm10corr) * g_pm10_multiplier;
     } else {
       Serial.println("[PMS5003] Gagal baca, nilai sebelumnya dipertahankan.");
     }
@@ -584,8 +588,19 @@ void syncThresholds() {
     g_threshPM25Sehat = tempData.intData();
   if (Firebase.getInt(tempData, "/config/thresholds/pm10_tidak_sehat"))
     g_threshPM10Sehat = tempData.intData();
+
+  // Sync PM calibration parameters from Firebase (if they exist)
+  if (Firebase.getFloat(tempData, "/config/calibration/pm25_multiplier"))
+    g_pm25_multiplier = tempData.floatData();
+  if (Firebase.getFloat(tempData, "/config/calibration/pm10_multiplier"))
+    g_pm10_multiplier = tempData.floatData();
+  if (Firebase.getBool(tempData, "/config/calibration/use_humidity_corr"))
+    g_use_humidity_corr = tempData.boolData();
+
   Serial.printf("[Config] Threshold → CO: %d ppm | PM2.5: %d µg/m³ | PM10: %d µg/m³\n",
                 g_threshAsapMax, g_threshPM25Sehat, g_threshPM10Sehat);
+  Serial.printf("[Config] PM Calib → PM2.5 Mult: %.2f | PM10 Mult: %.2f | Humid Corr: %s\n",
+                g_pm25_multiplier, g_pm10_multiplier, g_use_humidity_corr ? "ON" : "OFF");
 }
 
 // ============================================================
@@ -676,7 +691,12 @@ float calculateCO_ppm(float rs) {
   float ratio = rs / g_ro_mq135;   // FIX: pakai g_ro_mq135 (bukan define lama)
   if (ratio <= 0.0f) ratio = 0.001f;
   float ppm = MQ135_CO_A * pow(ratio, MQ135_CO_B);
+  
+  // Kurangi baseline CO di udara bersih (dari datasheet Rs/Ro = 3.6)
+  float ppmBaseline = MQ135_CO_A * pow(MQ135_RATIO_CLEAN_AIR, MQ135_CO_B);
+  ppm -= ppmBaseline;
   if (ppm < 0.0f) ppm = 0.0f;
+  
   return ppm;
 }
 
@@ -705,7 +725,7 @@ void readMQ135() {
 //  KOREKSI KELEMBAPAN PARTIKULAT
 // ============================================================
 float correctParticleHumidity(float pmRaw, float humidity) {
-  if (!PMS_USE_HUMIDITY_CORRECTION || humidity < 40.0f) {
+  if (!g_use_humidity_corr || humidity < 40.0f) {
     return pmRaw;
   }
   float cf        = 1.0f + 0.25f * (humidity / 100.0f);
@@ -846,9 +866,9 @@ void sendDataToFirebase() {
   int ispuVal = getISPUValue();
 
   // Status partikel PM2.5
-  String statusPM25 = (g_pm25 <= (float)g_threshPM25Sehat) ? "Sehat" : "Tidak Sehat";
+  String statusPM25 = (g_pm25 <= (float)g_threshPM25Sehat) ? "Baik" : "Tidak Sehat";
   // Status partikel PM10
-  String statusPM10 = (g_pm10 <= (float)g_threshPM10Sehat) ? "Sehat" : "Tidak Sehat";
+  String statusPM10 = (g_pm10 <= (float)g_threshPM10Sehat) ? "Baik" : "Tidak Sehat";
 
   FirebaseJson jsonSensor;
 

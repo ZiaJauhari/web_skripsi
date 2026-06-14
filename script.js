@@ -216,7 +216,7 @@ onValue(airQualityRef, (snapshot) => {
         // Update Status PM2.5
         const statPM25 = data.partikelDebu?.status || '-';
         elPm25Status.innerText = statPM25;
-        elPm25Status.style.color = statPM25.toLowerCase() === 'sehat'
+        elPm25Status.style.color = (statPM25.toLowerCase() === 'baik' || statPM25.toLowerCase() === 'sehat')
             ? 'var(--accent-green)' : 'var(--accent-red)';
 
         // Baca nilai PM10
@@ -224,7 +224,7 @@ onValue(airQualityRef, (snapshot) => {
         elPm10.innerText = Number(pm10Value).toFixed(1);
         const statPM10 = data.partikelDebu?.statusPM10 || '-';
         elPm10Status.innerText = statPM10;
-        elPm10Status.style.color = statPM10.toLowerCase() === 'sehat'
+        elPm10Status.style.color = (statPM10.toLowerCase() === 'baik' || statPM10.toLowerCase() === 'sehat')
             ? 'var(--accent-green)' : 'var(--accent-red)';
 
         // Baca nilai ISPU langsung dari database
