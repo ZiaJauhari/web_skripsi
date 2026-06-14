@@ -265,8 +265,82 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
+         PANEL KONTROL & KALIBRASI
+         ═══════════════════════════════════════════════════════ -->
+    <div class="section-divider">
+        <span><i class="fas fa-sliders-h"></i> Panel Kontrol & Kalibrasi</span>
+    </div>
+    <div class="card settings-card" id="card-settings">
+        <div class="settings-grid">
+            <!-- Kolom Kalibrasi PM -->
+            <div class="settings-col">
+                <div class="settings-col-title">
+                    <i class="fas fa-tools"></i> Faktor Kalibrasi PM (Partikulat)
+                </div>
+                <div class="settings-group">
+                    <label for="input-pm25-mult">Multiplier PM2.5</label>
+                    <input type="number" id="input-pm25-mult" class="settings-input" step="0.01" min="0.1" max="10.0" value="3.14">
+                </div>
+                <div class="settings-group">
+                    <label for="input-pm10-mult">Multiplier PM10</label>
+                    <input type="number" id="input-pm10-mult" class="settings-input" step="0.01" min="0.1" max="10.0" value="3.09">
+                </div>
+                <div class="settings-checkbox-group">
+                    <input type="checkbox" id="input-use-humidity-corr">
+                    <label for="input-use-humidity-corr">Gunakan Koreksi Kelembaban Partikulat</label>
+                </div>
+            </div>
+
+            <!-- Kolom Kalibrasi MQ-135 & Thresholds -->
+            <div class="settings-col">
+                <div class="settings-col-title">
+                    <i class="fas fa-cog"></i> Threshold ISPU & Kalibrasi MQ-135
+                </div>
+                <div class="settings-grid" style="grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; width: 100%;">
+                    <div class="settings-group">
+                        <label for="input-thresh-co">Thresh CO</label>
+                        <input type="number" id="input-thresh-co" class="settings-input" min="1" max="100" value="7">
+                    </div>
+                    <div class="settings-group">
+                        <label for="input-thresh-pm25">Thresh PM2.5</label>
+                        <input type="number" id="input-thresh-pm25" class="settings-input" min="1" max="500" value="56">
+                    </div>
+                    <div class="settings-group">
+                        <label for="input-thresh-pm10">Thresh PM10</label>
+                        <input type="number" id="input-thresh-pm10" class="settings-input" min="1" max="500" value="151">
+                    </div>
+                </div>
+
+                <div class="calibration-status-container">
+                    <div class="calibration-status-row">
+                        <span>MQ-135 Ro Aktif:</span>
+                        <span id="val-ro-active" class="calibration-status-val">Loading...</span>
+                    </div>
+                    <div class="calibration-status-row">
+                        <span>Status MQ-135:</span>
+                        <span id="val-calib-status" class="calibration-status-val">Loading...</span>
+                    </div>
+                    <div class="calib-progress-bar-wrap" id="calib-progress-wrap">
+                        <div class="calib-progress-bar" id="calib-progress-bar"></div>
+                    </div>
+                    <button type="button" id="btn-trigger-calib" class="btn-danger" style="margin-top: 5px; width: 100%;">
+                        <i class="fas fa-sync-alt"></i> Jalankan Kalibrasi MQ-135
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-footer">
+            <button type="button" id="btn-save-settings" class="btn-primary">
+                <i class="fas fa-save"></i> Simpan Pengaturan
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
          RIWAYAT DATA
          ═══════════════════════════════════════════════════════ -->
+
     <div class="section-divider">
         <span><i class="fas fa-history"></i> Riwayat Data</span>
     </div>
@@ -313,9 +387,13 @@
     </div>
 </div>
 
+<!-- Toast Notification Container -->
+<div class="toast-container" id="toast-container"></div>
+
 <!-- ============================================== -->
 <!-- SCRIPT FIREBASE & LOGIC WEB                    -->
 <!-- ============================================== -->
 <script type="module" src="script.js"></script>
 </body>
 </html>
+
