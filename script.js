@@ -196,6 +196,16 @@ onValue(connectedRef, (snap) => {
 onValue(airQualityRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
+        // Cek Status Preheating (Pemanasan Awal)
+        const preheatingOverlay = document.getElementById('preheating-overlay');
+        const preheatingCountdown = document.getElementById('preheating-countdown');
+        if (data.preheating === true) {
+            if (preheatingOverlay) preheatingOverlay.style.display = 'flex';
+            if (preheatingCountdown) preheatingCountdown.innerText = data.countdown || '60';
+        } else {
+            if (preheatingOverlay) preheatingOverlay.style.display = 'none';
+        }
+
         // Update Text Values
         elSuhu.innerText = data.suhu !== undefined ? data.suhu.toFixed(1) : '0';
         elKelembaban.innerText = data.kelembaban !== undefined ? data.kelembaban.toFixed(1) : '0';

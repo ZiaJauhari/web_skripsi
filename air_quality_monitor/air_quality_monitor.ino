@@ -253,42 +253,8 @@ void setup() {
   memset(g_pm25Buffer, 0, sizeof(g_pm25Buffer));
   memset(g_pm10Buffer, 0, sizeof(g_pm10Buffer));
 
-  // --- MQ-135 warm-up (30 detik) ---
-  Serial.print("[MQ135] Pemanasan awal (30 detik)");
-  for (int i = 0; i < 6; i++) {
-    delay(5000);
-    Serial.print(".");
-  }
-  Serial.println(" Selesai!");
-
-  // --- Coba muat Ro dari NVS flash ---
-  bool forceCalib = (digitalRead(PIN_BOOT_BTN) == LOW);  // Tombol BOOT ditahan
-  if (forceCalib) {
-    Serial.println("\n[KALIB] Tombol BOOT ditahan → Kalibrasi ulang paksa!");
-  }
-
-  if (!forceCalib && loadRoFromNVS()) {
-    Serial.printf("[KALIB] Ro dimuat dari flash: %.0f Ω\n", g_ro_mq135);
-    g_calibrated = true;
-  } else {
-    // Belum ada nilai Ro tersimpan → jalankan kalibrasi otomatis
-    Serial.println("[KALIB] Nilai Ro belum tersimpan. Memulai kalibrasi otomatis...");
-    Serial.println("        Pastikan sensor berada di UDARA BERSIH!\n");
-
-    // Sambungkan WiFi & Firebase lebih dulu agar timestamp tersedia
-    connectWiFi();
-    configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET, NTP_SERVER);
-    struct tm ti;
-    for (int i = 0; i < 10 && !getLocalTime(&ti); i++) delay(500);
-    connectFirebase();
-    syncThresholds();
-
-    runAutoCalibration(true);  // upload hasil ke Firebase
-  }
-
-  // --- Koneksi (jika belum terhubung dari path kalibrasi) ---
+  // --- Sambungkan WiFi & NTP ---
   connectWiFi();
-
   configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET, NTP_SERVER);
   Serial.print("[NTP] Sinkronisasi waktu");
   struct tm timeinfo;
@@ -301,8 +267,47 @@ void setup() {
     delay(500);
   }
 
+  // --- Sambungkan Firebase & Sync Thresholds ---
   connectFirebase();
   syncThresholds();
+
+  // --- Coba muat Ro dari NVS flash ---
+  bool forceCalib = (digitalRead(PIN_BOOT_BTN) == LOW);  // Tombol BOOT ditahan
+  if (forceCalib) {
+    Serial.println("\n[KALIB] Tombol BOOT ditahan → Kalibrasi ulang paksa!");
+  }
+
+  if (!forceCalib && loadRoFromNVS()) {
+    Serial.printf("[KALIB] Ro dimuat dari flash: %.0f Ω\n", g_ro_mq135);
+    g_calibrated = true;
+  } else {
+    // Belum ada nilai Ro tersimpan atau tombol ditahan → jalankan kalibrasi otomatis (120 detik)
+    Serial.println("[KALIB] Nilai Ro belum tersimpan atau paksa. Memulai kalibrasi otomatis...");
+    Serial.println("        Pastikan sensor berada di UDARA BERSIH!\n");
+    runAutoCalibration(true);  // upload hasil ke Firebase
+  }
+
+  // --- PROSES PREHEATING (60 Detik) ---
+  Serial.println("[SYSTEM] Memulai pemanasan sensor (Preheating) 60 detik...");
+  for (int countdown = 60; countdown > 0; countdown--) {
+    // Kirim status preheating ke Firebase
+    if (Firebase.ready()) {
+      FirebaseJson jsonPreheat;
+      jsonPreheat.set("preheating", true);
+      jsonPreheat.set("countdown", countdown);
+      Firebase.updateNode(fbData, "/airQuality", jsonPreheat);
+    }
+    Serial.printf("[SYSTEM] Pemanasan: %d detik tersisa...\n", countdown);
+    delay(1000);
+  }
+
+  // Selesai preheating, set flag preheating ke false
+  if (Firebase.ready()) {
+    FirebaseJson jsonPreheatDone;
+    jsonPreheatDone.set("preheating", false);
+    jsonPreheatDone.set("countdown", 0);
+    Firebase.updateNode(fbData, "/airQuality", jsonPreheatDone);
+  }
 
   Serial.println("\n[SYSTEM] Setup selesai. Mulai monitoring...");
   Serial.printf("[KALIB] Ro aktif: %.0f Ω | Kalibrasi: %s\n\n",
