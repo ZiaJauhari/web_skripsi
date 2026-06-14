@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitoring Kualitas Udara</title>
+    <title>Monitoring Kualitas Udara - ISPU Smoking Room</title>
+    <meta name="description" content="Dashboard monitoring kualitas udara realtime berbasis IoT dengan perhitungan ISPU sesuai Permen LHK No. 14 Tahun 2020">
     <!-- Google Fonts: Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +18,10 @@
 <body>
 
 <div class="container">
-    <!-- Top Dashboard Header & Status Overview -->
-    <header class="dashboard-header">
+    <!-- ═══════════════════════════════════════════════════════
+         HEADER & STATUS OVERVIEW
+         ═══════════════════════════════════════════════════════ -->
+    <header class="dashboard-header" id="dashboard-header">
         <div class="header-left">
             <div class="brand-section">
                 <h1><i class="fas fa-wind icon-wind-animate"></i> IoT Air Quality</h1>
@@ -34,19 +37,21 @@
         
         <div class="header-right">
             <div class="status-summary-card">
-                <span class="status-label">Status Kualitas Udara</span>
-                <div id="status-level-badge">MENUNGGU DATA</div>
+                <span class="status-label">Kategori ISPU</span>
+                <div id="status-level-badge" class="status-badge-default">MENUNGGU DATA</div>
             </div>
         </div>
     </header>
 
-    <!-- Room Climate Section (2 Cards) -->
+    <!-- ═══════════════════════════════════════════════════════
+         IKLIM RUANGAN (Suhu & Kelembaban)
+         ═══════════════════════════════════════════════════════ -->
     <div class="section-divider">
         <span><i class="fas fa-thermometer-half"></i> Iklim Ruangan</span>
     </div>
     <div class="grid-cards grid-climate">
         <!-- Suhu -->
-        <div class="card climate-card">
+        <div class="card climate-card" id="card-suhu">
             <div class="card-glow-orange"></div>
             <div class="card-header">
                 <span>Suhu Ruangan</span>
@@ -58,7 +63,7 @@
         </div>
 
         <!-- Kelembaban -->
-        <div class="card climate-card">
+        <div class="card climate-card" id="card-kelembaban">
             <div class="card-glow-blue"></div>
             <div class="card-header">
                 <span>Kelembaban</span>
@@ -70,68 +75,76 @@
         </div>
     </div>
 
-    <!-- Air Pollutants Section (3 Cards) -->
+    <!-- ═══════════════════════════════════════════════════════
+         KONSENTRASI POLUTAN (PM2.5, PM10, CO)
+         ═══════════════════════════════════════════════════════ -->
     <div class="section-divider">
         <span><i class="fas fa-shield-virus"></i> Konsentrasi Polutan</span>
     </div>
     <div class="grid-cards grid-pollutants">
-        <!-- Kadar Asap -->
-        <div class="card pollutant-card">
-            <div class="card-header">
-                <span>Kadar Asap</span>
-                <i class="fas fa-smog icon-asap"></i>
-            </div>
-            <div class="card-value">
-                <span id="val-asap">0.0</span><span class="card-unit"> ppm</span>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar" id="bar-asap" style="width: 0%;"></div>
-            </div>
-        </div>
-
         <!-- PM2.5 -->
-        <div class="card pollutant-card">
+        <div class="card pollutant-card" id="card-pm25">
             <div class="card-header">
-                <span>Partikel PM2.5</span>
+                <span>PM2.5</span>
                 <i class="fas fa-lungs icon-pm25"></i>
             </div>
             <div class="card-value">
-                <span id="val-pm25">0</span><span class="card-unit"> µg/m³</span>
+                <span id="val-pm25">0.0</span><span class="card-unit"> µg/m³</span>
             </div>
             <div class="card-footer">
-                <span>Status Partikel:</span>
-                <span id="val-pm25-status" class="status-indicator">-</span>
+                <span>ISPU PM2.5:</span>
+                <span id="val-ispu-pm25" class="ispu-inline-badge">-</span>
             </div>
         </div>
 
         <!-- PM10 -->
-        <div class="card pollutant-card">
+        <div class="card pollutant-card" id="card-pm10">
             <div class="card-header">
-                <span>Partikel PM10</span>
+                <span>PM10</span>
                 <i class="fas fa-wind icon-pm10"></i>
             </div>
             <div class="card-value">
-                <span id="val-pm10">0</span><span class="card-unit"> µg/m³</span>
+                <span id="val-pm10">0.0</span><span class="card-unit"> µg/m³</span>
             </div>
             <div class="card-footer">
-                <span>Status Partikel:</span>
-                <span id="val-pm10-status" class="status-indicator">-</span>
+                <span>ISPU PM10:</span>
+                <span id="val-ispu-pm10" class="ispu-inline-badge">-</span>
+            </div>
+        </div>
+
+        <!-- CO -->
+        <div class="card pollutant-card" id="card-co">
+            <div class="card-header">
+                <span>CO (Karbon Monoksida)</span>
+                <i class="fas fa-smog icon-co"></i>
+            </div>
+            <div class="card-value">
+                <span id="val-co">0.00</span><span class="card-unit"> ppm</span>
+            </div>
+            <div class="card-footer">
+                <span>ISPU CO:</span>
+                <span id="val-ispu-co" class="ispu-inline-badge">-</span>
             </div>
         </div>
     </div>
 
-    <!-- ISPU Section -->
-    <div class="card ispu-card">
+    <!-- ═══════════════════════════════════════════════════════
+         ISPU SECTION (Ring Gauge + Info Cards)
+         ═══════════════════════════════════════════════════════ -->
+    <div class="section-divider">
+        <span><i class="fas fa-chart-bar"></i> Indeks Standar Pencemar Udara (ISPU)</span>
+    </div>
+    <div class="card ispu-card" id="card-ispu">
         <div class="ispu-card-header">
             <div class="ispu-card-title">
-                <h2><i class="fas fa-chart-bar"></i> Indeks Standar Pencemar Udara (ISPU)</h2>
+                <h2><i class="fas fa-chart-bar"></i> ISPU Akhir</h2>
                 <p class="ispu-subtitle">Berdasarkan Permen LHK No. 14 Tahun 2020</p>
             </div>
         </div>
         
         <div class="ispu-layout">
+            <!-- Ring Gauge ISPU -->
             <div class="ispu-gauges-container">
-                <!-- Ring Gauge ISPU -->
                 <div class="ispu-gauge-wrap">
                     <div class="ispu-ring" id="ispu-ring">
                         <div class="ispu-ring-inner">
@@ -140,6 +153,42 @@
                         </div>
                     </div>
                     <div class="ispu-kategori-label" id="val-ispu-kategori">Menunggu data...</div>
+                </div>
+            </div>
+
+            <!-- Info Kritis & Exhaust Fan -->
+            <div class="ispu-info-grid">
+                <!-- Parameter Pencemar Kritis -->
+                <div class="ispu-info-card" id="card-kritis">
+                    <div class="ispu-info-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="ispu-info-content">
+                        <span class="ispu-info-label">Parameter Pencemar Kritis</span>
+                        <span class="ispu-info-value" id="val-param-kritis">-</span>
+                    </div>
+                </div>
+
+                <!-- Status Exhaust Fan -->
+                <div class="ispu-info-card" id="card-exhaust-fan">
+                    <div class="ispu-info-icon fan-icon-wrap">
+                        <i class="fas fa-fan" id="fan-icon"></i>
+                    </div>
+                    <div class="ispu-info-content">
+                        <span class="ispu-info-label">Status Exhaust Fan</span>
+                        <span class="ispu-info-value" id="val-exhaust-fan">-</span>
+                    </div>
+                </div>
+
+                <!-- Status Air Purifier -->
+                <div class="ispu-info-card" id="card-purifier">
+                    <div class="ispu-info-icon purifier-icon-wrap">
+                        <i class="fas fa-shield-virus" id="purifier-icon"></i>
+                    </div>
+                    <div class="ispu-info-content">
+                        <span class="ispu-info-label">Status Air Purifier</span>
+                        <span class="ispu-info-value" id="val-purifier">-</span>
+                    </div>
                 </div>
             </div>
 
@@ -177,13 +226,76 @@
         </div>
     </div>
 
-    <!-- Bottom Section: Chart -->
-    <div class="card chart-card">
-        <div class="section-title">
-            <span><i class="fas fa-chart-line"></i> Tren Grafik Real-time (10 Data Terakhir)</span>
+    <!-- ═══════════════════════════════════════════════════════
+         GRAFIK REALTIME (3 Grafik Terpisah)
+         ═══════════════════════════════════════════════════════ -->
+    <div class="section-divider">
+        <span><i class="fas fa-chart-line"></i> Grafik Realtime (20 Data Terakhir)</span>
+    </div>
+    <div class="grid-charts">
+        <!-- Grafik PM2.5 -->
+        <div class="card chart-card" id="chart-card-pm25">
+            <div class="chart-title">
+                <i class="fas fa-lungs icon-pm25"></i> PM2.5 (µg/m³)
+            </div>
+            <div class="chart-container">
+                <canvas id="chartPM25"></canvas>
+            </div>
         </div>
-        <div class="chart-container">
-            <canvas id="historyChart"></canvas>
+
+        <!-- Grafik PM10 -->
+        <div class="card chart-card" id="chart-card-pm10">
+            <div class="chart-title">
+                <i class="fas fa-wind icon-pm10"></i> PM10 (µg/m³)
+            </div>
+            <div class="chart-container">
+                <canvas id="chartPM10"></canvas>
+            </div>
+        </div>
+
+        <!-- Grafik CO -->
+        <div class="card chart-card" id="chart-card-co">
+            <div class="chart-title">
+                <i class="fas fa-smog icon-co"></i> CO (ppm)
+            </div>
+            <div class="chart-container">
+                <canvas id="chartCO"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         RIWAYAT DATA
+         ═══════════════════════════════════════════════════════ -->
+    <div class="section-divider">
+        <span><i class="fas fa-history"></i> Riwayat Data</span>
+    </div>
+    <div class="card history-card" id="card-history">
+        <div class="history-header">
+            <h2><i class="fas fa-database"></i> Log Data Terakhir</h2>
+            <span class="history-count" id="history-count">0 entri</span>
+        </div>
+        <div class="history-table-wrap">
+            <table class="history-table" id="history-table">
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>PM2.5</th>
+                        <th>PM10</th>
+                        <th>CO</th>
+                        <th>ISPU</th>
+                        <th>Kategori</th>
+                        <th>Kritis</th>
+                        <th>Fan</th>
+                        <th>Purifier</th>
+                    </tr>
+                </thead>
+                <tbody id="history-tbody">
+                    <tr>
+                        <td colspan="9" class="history-empty">Menunggu data riwayat...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

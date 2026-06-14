@@ -694,3 +694,281 @@ body {
         transform: translateY(0);
     }
 }
+
+/* =========================================================
+   ADDITIONAL STYLING FOR NEW LAYOUT (ISPU V3)
+   ========================================================= */
+
+/* Grid layout for 3 charts */
+.grid-charts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 1024px) {
+    .grid-charts {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-charts {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pollutant-card .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.ispu-inline-badge {
+    background-color: var(--border-color);
+    color: var(--text-main);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* ISPU Info Grid & Cards (Parameter Kritis, Exhaust Fan) */
+.ispu-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    min-width: 250px;
+}
+
+.ispu-info-card {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+}
+
+.ispu-info-card:hover {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.ispu-info-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--text-light);
+    flex-shrink: 0;
+}
+
+#card-kritis .ispu-info-icon {
+    color: var(--accent-orange);
+    background: rgba(249, 115, 22, 0.05);
+    border-color: rgba(249, 115, 22, 0.15);
+}
+
+#card-exhaust-fan .ispu-info-icon {
+    color: var(--accent-blue);
+    background: rgba(56, 189, 248, 0.05);
+    border-color: rgba(56, 189, 248, 0.15);
+}
+
+#card-purifier .ispu-info-icon {
+    color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+.ispu-info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ispu-info-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.ispu-info-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* Fan Spin Animation */
+.fan-icon-wrap {
+    position: relative;
+}
+
+.fan-spin {
+    animation: spinFan 1.5s linear infinite;
+}
+
+@keyframes spinFan {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Purifier Pulse Animation */
+.purifier-icon-wrap {
+    position: relative;
+}
+
+.purifier-pulse {
+    animation: pulsePurifier 1.5s ease-in-out infinite;
+}
+
+@keyframes pulsePurifier {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.8; }
+}
+
+/* History Card & Table Section */
+.history-card {
+    padding: 24px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.history-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.history-table-wrap {
+    overflow-x: auto;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.history-table th {
+    background: rgba(15, 23, 42, 0.6);
+    color: var(--text-light);
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.history-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+    color: var(--text-main);
+}
+
+.history-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.history-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.history-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 32px !important;
+    font-style: italic;
+}
+
+/* Badge styles inside history table */
+.history-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.history-badge.fan-on {
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--accent-blue);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.history-badge.fan-off {
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--text-light);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.history-badge.ispu-baik {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.history-badge.ispu-sedang {
+    background: rgba(163, 230, 53, 0.1);
+    color: #a3e635;
+    border: 1px solid rgba(163, 230, 53, 0.2);
+}
+
+.history-badge.ispu-tidak-sehat {
+    background: rgba(249, 115, 22, 0.1);
+    color: var(--accent-orange);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+.history-badge.ispu-sangat-tidak-sehat {
+    background: rgba(192, 38, 211, 0.1);
+    color: var(--accent-purple);
+    border: 1px solid rgba(192, 38, 211, 0.2);
+}
+
+.history-badge.ispu-berbahaya {
+    background: rgba(244, 63, 94, 0.1);
+    color: var(--accent-red);
+    border: 1px solid rgba(244, 63, 94, 0.2);
+}

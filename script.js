@@ -1,10 +1,8 @@
-// Menggunakan Firebase SDK Modular (v9+)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+import { getDatabase, ref, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
 // =========================================================================
-// 1. KONFIGURASI FIREBASE
-// TODO: Ganti nilai di dalam firebaseConfig ini dengan data dari Firebase Console Anda!
+// 1. CONFIGURASI FIREBASE
 // =========================================================================
 const firebaseConfig = {
     apiKey: "AIzaSyASTd9dlNjxe8QZL2LJRatx8qUntt2D80g",
@@ -23,120 +21,12 @@ const db = getDatabase(app);
 // Referensi Database
 const connectedRef = ref(db, ".info/connected");
 const airQualityRef = ref(db, "airQuality");
-const configRef = ref(db, "config/thresholds");
+// Query history terbatas pada 20 entri terakhir untuk performa dan kenyamanan
+const historyQueryRef = query(ref(db, "airQuality/history"), limitToLast(20));
 
 // =========================================================================
-// 2. INISIALISASI CHART.JS
+// 2. DETEKSI KATEGORI ISPU & WARNA
 // =========================================================================
-const ctx = document.getElementById('historyChart').getContext('2d');
-
-// Array untuk menyimpan history (maksimal 10)
-let historyLabels    = [];
-let historyDataAsap  = [];
-let historyDataPM25  = [];
-let historyDataPM10  = [];
-const MAX_HISTORY = 10;
-
-const historyChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: historyLabels,
-        datasets: [
-            {
-                label: 'Kadar Asap (ppm)',
-                data: historyDataAsap,
-                borderColor: 'rgba(161, 161, 170, 1)', // Abu-abu
-                backgroundColor: 'rgba(161, 161, 170, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true
-            },
-            {
-                label: 'PM2.5 (µg/m³)',
-                data: historyDataPM25,
-                borderColor: 'rgba(56, 189, 248, 1)',
-                backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true
-            },
-            {
-                label: 'PM10 (µg/m³)',
-                data: historyDataPM10,
-                borderColor: 'rgba(163, 230, 53, 1)',
-                backgroundColor: 'rgba(163, 230, 53, 0.08)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        color: '#94a3b8',
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: '#1e293b' },
-                ticks: { 
-                    color: '#64748b',
-                    font: { family: "'Outfit', sans-serif" }
-                }
-            },
-            x: {
-                grid: { color: '#1e293b' },
-                ticks: { 
-                    color: '#64748b',
-                    font: { family: "'Outfit', sans-serif" }
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                position: 'top',
-                labels: { 
-                    color: '#f8fafc', 
-                    boxWidth: 15,
-                    font: { 
-                        size: 11,
-                        family: "'Outfit', sans-serif"
-                    }
-                }
-            }
-        }
-    }
-});
-
-function updateChart(waktu, asap, pm25, pm10) {
-    historyLabels.push(waktu);
-    historyDataAsap.push(asap);
-    historyDataPM25.push(pm25);
-    historyDataPM10.push(pm10);
-
-    if (historyLabels.length > MAX_HISTORY) {
-        historyLabels.shift();
-        historyDataAsap.shift();
-        historyDataPM25.shift();
-        historyDataPM10.shift();
-    }
-
-    historyChart.update();
-}
-
-// =========================================================================
-// 3. LOGIKA KONEKSI & MONITORING REAL-TIME
-// =========================================================================
-
-// =========================================================================
-// ISPU - Klasifikasi Berdasarkan Permen LHK No. 14 Tahun 2020
-// =========================================================================
-
-/**
- * Menentukan kategori dan warna ISPU berdasarkan nilai indeksnya
- * @param {number} ispu - Nilai ISPU dari database
- * @returns {{ kategori: string, warna: string }}
- */
 function dapatkanKategoriISPU(ispu) {
     if (ispu < 0) return { kategori: '-', warna: 'var(--text-muted)' };
 
@@ -161,27 +51,178 @@ function dapatkanKategoriISPU(ispu) {
     return { kategori, warna };
 }
 
-// DOM Elements
-const elConnStatus    = document.getElementById('conn-status');
-const elStatusBadge   = document.getElementById('status-level-badge');
-const elSuhu          = document.getElementById('val-suhu');
-const elKelembaban    = document.getElementById('val-kelembaban');
-const elAsap          = document.getElementById('val-asap');
-const elBarAsap       = document.getElementById('bar-asap');
-const elPm25          = document.getElementById('val-pm25');
-const elPm25Status    = document.getElementById('val-pm25-status');
-const elPm10          = document.getElementById('val-pm10');
-const elPm10Status    = document.getElementById('val-pm10-status');
-const elLastUpdate    = document.getElementById('last-update');
+// =========================================================================
+// 3. INISIALISASI CHART.JS (3 GRAFIK TERPISAH)
+// =========================================================================
+const chartOptions = (label, color, bordercolor) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    color: '#94a3b8',
+    scales: {
+        y: {
+            beginAtZero: true,
+            grid: { color: '#1e293b' },
+            ticks: { 
+                color: '#64748b',
+                font: { family: "'Outfit', sans-serif" }
+            }
+        },
+        x: {
+            grid: { color: '#1e293b' },
+            ticks: { 
+                color: '#64748b',
+                font: { family: "'Outfit', sans-serif" },
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 5
+            }
+        }
+    },
+    plugins: {
+        legend: {
+            display: false
+        },
+        tooltip: {
+            backgroundColor: '#131c2e',
+            titleColor: '#f8fafc',
+            bodyColor: '#f8fafc',
+            borderColor: '#1e293b',
+            borderWidth: 1,
+            titleFont: { family: "'Outfit', sans-serif" },
+            bodyFont: { family: "'Outfit', sans-serif" }
+        }
+    }
+});
+
+// PM2.5 Chart
+const ctxPM25 = document.getElementById('chartPM25').getContext('2d');
+const chartPM25 = new Chart(ctxPM25, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            data: [],
+            borderColor: 'rgba(56, 189, 248, 1)', // Sky Blue
+            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: 'rgba(56, 189, 248, 1)',
+            pointRadius: 2
+        }]
+    },
+    options: chartOptions('PM2.5', 'rgba(56, 189, 248, 0.1)', 'rgba(56, 189, 248, 1)')
+});
+
+// PM10 Chart
+const ctxPM10 = document.getElementById('chartPM10').getContext('2d');
+const chartPM10 = new Chart(ctxPM10, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            data: [],
+            borderColor: 'rgba(163, 230, 53, 1)', // Lime
+            backgroundColor: 'rgba(163, 230, 53, 0.08)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: 'rgba(163, 230, 53, 1)',
+            pointRadius: 2
+        }]
+    },
+    options: chartOptions('PM10', 'rgba(163, 230, 53, 0.08)', 'rgba(163, 230, 53, 1)')
+});
+
+// CO Chart
+const ctxCO = document.getElementById('chartCO').getContext('2d');
+const chartCO = new Chart(ctxCO, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            data: [],
+            borderColor: 'rgba(249, 115, 22, 1)', // Orange
+            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+            pointRadius: 2
+        }]
+    },
+    options: chartOptions('CO', 'rgba(249, 115, 22, 0.1)', 'rgba(249, 115, 22, 1)')
+});
+
+// Fungsi untuk update data di ketiga chart sekaligus
+function updateCharts(historyList) {
+    const labels = [];
+    const pm25Data = [];
+    const pm10Data = [];
+    const coData = [];
+
+    historyList.forEach(entry => {
+        let labelTime = "-";
+        if (entry.timestamp) {
+            const dateObj = new Date(entry.timestamp);
+            if (!isNaN(dateObj.getTime())) {
+                labelTime = dateObj.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
+            } else {
+                labelTime = String(entry.timestamp).substring(11, 16); // Ambil jam:menit dari string ISO
+            }
+        }
+        labels.push(labelTime);
+        pm25Data.push(entry.pm25 !== undefined ? entry.pm25 : 0);
+        pm10Data.push(entry.pm10 !== undefined ? entry.pm10 : 0);
+        coData.push(entry.co !== undefined ? entry.co : 0);
+    });
+
+    // PM2.5 Update
+    chartPM25.data.labels = labels;
+    chartPM25.data.datasets[0].data = pm25Data;
+    chartPM25.update();
+
+    // PM10 Update
+    chartPM10.data.labels = labels;
+    chartPM10.data.datasets[0].data = pm10Data;
+    chartPM10.update();
+
+    // CO Update
+    chartCO.data.labels = labels;
+    chartCO.data.datasets[0].data = coData;
+    chartCO.update();
+}
+
+// =========================================================================
+// 4. UI ELEMENT BINDINGS & REAL-TIME LISTENER
+// =========================================================================
+const elConnStatus      = document.getElementById('conn-status');
+const elStatusBadge     = document.getElementById('status-level-badge');
+const elSuhu            = document.getElementById('val-suhu');
+const elKelembaban      = document.getElementById('val-kelembaban');
+const elPm25            = document.getElementById('val-pm25');
+const elPm10            = document.getElementById('val-pm10');
+const elCo              = document.getElementById('val-co');
+const elIspuPM25        = document.getElementById('val-ispu-pm25');
+const elIspuPM10        = document.getElementById('val-ispu-pm10');
+const elIspuCO          = document.getElementById('val-ispu-co');
+const elLastUpdate      = document.getElementById('last-update');
+
 // ISPU Elements
-const elISPU          = document.getElementById('val-ispu');
-const elISPUKategori  = document.getElementById('val-ispu-kategori');
-const elISPURing      = document.getElementById('ispu-ring');
+const elISPU            = document.getElementById('val-ispu');
+const elISPUKategori    = document.getElementById('val-ispu-kategori');
+const elISPURing        = document.getElementById('ispu-ring');
+const elParamKritis     = document.getElementById('val-param-kritis');
+const elExhaustFan      = document.getElementById('val-exhaust-fan');
+const elFanIcon         = document.getElementById('fan-icon');
+const elPurifier        = document.getElementById('val-purifier');
+const elPurifierIcon    = document.getElementById('purifier-icon');
 
-// Bagian kontrol dan threshold telah dihapus
+// History Elements
+const elHistoryTbody    = document.getElementById('history-tbody');
+const elHistoryCount    = document.getElementById('history-count');
 
-
-// Listener Koneksi
+// Listener status koneksi Firebase
 onValue(connectedRef, (snap) => {
     if (snap.val() === true) {
         elConnStatus.className = "badge-conn connected";
@@ -192,11 +233,11 @@ onValue(connectedRef, (snap) => {
     }
 });
 
-// Listener Data Sensor (airQuality)
+// Listener data sensor real-time
 onValue(airQualityRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
-        // Cek Status Preheating (Pemanasan Awal)
+        // Cek Preheating
         const preheatingOverlay = document.getElementById('preheating-overlay');
         const preheatingCountdown = document.getElementById('preheating-countdown');
         if (data.preheating === true) {
@@ -206,85 +247,181 @@ onValue(airQualityRef, (snapshot) => {
             if (preheatingOverlay) preheatingOverlay.style.display = 'none';
         }
 
-        // Update Text Values
-        elSuhu.innerText = data.suhu !== undefined ? data.suhu.toFixed(1) : '0';
-        elKelembaban.innerText = data.kelembaban !== undefined ? data.kelembaban.toFixed(1) : '0';
+        // Iklim Ruangan
+        elSuhu.innerText = data.suhu !== undefined ? data.suhu.toFixed(1) : '0.0';
+        elKelembaban.innerText = data.kelembaban !== undefined ? data.kelembaban.toFixed(1) : '0.0';
+
+        // Konsentrasi Polutan
+        const pm25Val = data.pm25 !== undefined ? data.pm25 : 0;
+        const pm10Val = data.pm10 !== undefined ? data.pm10 : 0;
+        const coVal   = data.co !== undefined ? data.co : 0;
+
+        elPm25.innerText = pm25Val.toFixed(1);
+        elPm10.innerText = pm10Val.toFixed(1);
+        elCo.innerText   = coVal.toFixed(2);
+
+        // ISPU per Parameter
+        const ispuPM25 = data.ispu?.pm25 !== undefined ? data.ispu.pm25 : '-';
+        const ispuPM10 = data.ispu?.pm10 !== undefined ? data.ispu.pm10 : '-';
+        const ispuCO   = data.ispu?.co !== undefined ? data.ispu.co : '-';
+
+        elIspuPM25.innerText = ispuPM25;
+        elIspuPM25.style.backgroundColor = ispuPM25 !== '-' ? dapatkanKategoriISPU(ispuPM25).warna + '22' : 'transparent';
+        elIspuPM25.style.color = ispuPM25 !== '-' ? dapatkanKategoriISPU(ispuPM25).warna : 'var(--text-light)';
+
+        elIspuPM10.innerText = ispuPM10;
+        elIspuPM10.style.backgroundColor = ispuPM10 !== '-' ? dapatkanKategoriISPU(ispuPM10).warna + '22' : 'transparent';
+        elIspuPM10.style.color = ispuPM10 !== '-' ? dapatkanKategoriISPU(ispuPM10).warna : 'var(--text-light)';
+
+        elIspuCO.innerText   = ispuCO;
+        elIspuCO.style.backgroundColor = ispuCO !== '-' ? dapatkanKategoriISPU(ispuCO).warna + '22' : 'transparent';
+        elIspuCO.style.color = ispuCO !== '-' ? dapatkanKategoriISPU(ispuCO).warna : 'var(--text-light)';
+
+        // ISPU Akhir (Ring Gauge)
+        const ispuAkhir = data.ispu?.akhir !== undefined ? Number(data.ispu.akhir) : 0;
+        const catInfo   = dapatkanKategoriISPU(ispuAkhir);
+
+        elISPU.innerText = ispuAkhir;
+        elISPU.style.color = catInfo.warna;
+        elISPUKategori.innerText = data.ispu?.kategori || catInfo.kategori;
+        elISPUKategori.style.color = catInfo.warna;
+
+        // Visualisasi Ring Gauge
+        const deg = Math.round(Math.min(ispuAkhir / 500, 1) * 360);
+        elISPURing.style.background = `conic-gradient(${catInfo.warna} ${deg}deg, var(--border-color) ${deg}deg)`;
+
+        // Parameter Kritis
+        elParamKritis.innerText = data.ispu?.paramKritis || '-';
+
+        // Exhaust Fan Status & Animasi
+        const isFanOn = (data.exhaustFan === "ON");
+        elExhaustFan.innerText = isFanOn ? "AKTIF" : "MATI";
+        elExhaustFan.style.color = isFanOn ? "var(--accent-blue)" : "var(--text-muted)";
         
-        const rawAsap = data.kadarAsap || 0;
-        const kadarAsap = Number(rawAsap).toFixed(1);
-        const pm25Value = data.partikelDebu?.PM25 || 0;
+        if (isFanOn) {
+            elFanIcon.classList.add("fan-spin");
+            elFanIcon.style.color = "var(--accent-blue)";
+        } else {
+            elFanIcon.classList.remove("fan-spin");
+            elFanIcon.style.color = "var(--text-muted)";
+        }
+
+        // Air Purifier Status & Animasi
+        const isPurifierOn = (data.purifier === "ON");
+        elPurifier.innerText = isPurifierOn ? "AKTIF" : "MATI";
+        elPurifier.style.color = isPurifierOn ? "var(--accent-green)" : "var(--text-muted)";
         
-        elAsap.innerText = kadarAsap;
-        elPm25.innerText = Number(pm25Value).toFixed(1);
-
-        // Update Progress Bar Asap (Warna menyesuaikan nilai)
-        elBarAsap.style.width = `${Math.min(kadarAsap, 100)}%`;
-        if (kadarAsap < 30) elBarAsap.style.backgroundColor = 'var(--accent-green)';
-        else if (kadarAsap < 70) elBarAsap.style.backgroundColor = 'var(--accent-orange)';
-        else elBarAsap.style.backgroundColor = 'var(--accent-red)';
-
-        // Update Status PM2.5
-        const statPM25 = data.partikelDebu?.status || '-';
-        elPm25Status.innerText = statPM25;
-        elPm25Status.style.color = (statPM25.toLowerCase() === 'baik' || statPM25.toLowerCase() === 'sehat')
-            ? 'var(--accent-green)' : 'var(--accent-red)';
-
-        // Baca nilai PM10
-        const pm10Value = data.partikelDebu?.PM10 || 0;
-        elPm10.innerText = Number(pm10Value).toFixed(1);
-        const statPM10 = data.partikelDebu?.statusPM10 || '-';
-        elPm10Status.innerText = statPM10;
-        elPm10Status.style.color = (statPM10.toLowerCase() === 'baik' || statPM10.toLowerCase() === 'sehat')
-            ? 'var(--accent-green)' : 'var(--accent-red)';
-
-        // Baca nilai ISPU langsung dari database
-        const ispuValue = data.ISPU !== undefined ? Number(data.ISPU) : 0;
-        const ispuResult = dapatkanKategoriISPU(ispuValue);
-        
-        if (elISPU) {
-            elISPU.innerText = ispuValue;
-            elISPU.style.color = ispuResult.warna;
-        }
-        if (elISPUKategori) {
-            elISPUKategori.innerText = ispuResult.kategori;
-            elISPUKategori.style.color = ispuResult.warna;
-        }
-        if (elISPURing) {
-            const deg = Math.round(Math.min(ispuValue / 500, 1) * 360);
-            elISPURing.style.background =
-                `conic-gradient(${ispuResult.warna} ${deg}deg, var(--border-color) ${deg}deg)`;
+        if (isPurifierOn) {
+            elPurifierIcon.classList.add("purifier-pulse");
+            elPurifierIcon.style.color = "var(--accent-green)";
+        } else {
+            elPurifierIcon.classList.remove("purifier-pulse");
+            elPurifierIcon.style.color = "var(--text-muted)";
         }
 
-        // Update Main Air Status Badge
-        const statusLevel = (data.statusLevel || '').toUpperCase();
-        elStatusBadge.innerText = statusLevel;
+        // Header Kategori ISPU Badge
+        const headerCat = (data.ispu?.kategori || catInfo.kategori || '').toUpperCase();
+        elStatusBadge.innerText = headerCat;
         elStatusBadge.className = ''; // reset class
-        if (statusLevel === 'BAIK') {
+        
+        if (headerCat === 'BAIK' || headerCat === 'SEDANG') {
             elStatusBadge.classList.add('status-baik');
-        } else if (statusLevel === 'BURUK' || statusLevel === 'TIDAK SEHAT') {
+        } else if (headerCat !== '') {
             elStatusBadge.classList.add('status-buruk');
         }
 
-
-
-        // Format dan tampilkan waktu (Timestamp)
-        let timeString = "-";
+        // Waktu Update Terakhir
         if (data.timestamp) {
             const dateObj = new Date(data.timestamp);
             if (!isNaN(dateObj.getTime())) {
-                timeString = dateObj.toLocaleTimeString('id-ID', { hour12: false });
-                elLastUpdate.innerText = `${dateObj.toLocaleDateString('id-ID')} ${timeString}`;
+                const dateStr = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                elLastUpdate.innerText = `${dateStr} ${timeStr}`;
             } else {
-                // Fallback jika format timestamp tidak terbaca
-                let rawTime = String(data.timestamp);
-                timeString = rawTime.includes('T') ? rawTime.split('T')[1].substring(0,8) : rawTime.substring(0,8);
-                elLastUpdate.innerText = rawTime;
+                elLastUpdate.innerText = String(data.timestamp);
             }
         }
-
-        // Update Grafik (Chart.js)
-        updateChart(timeString, kadarAsap, pm25Value, pm10Value);
     }
 });
 
+// =========================================================================
+// 5. RIWAYAT DATA & GRAFIK (REAL-TIME HISTORY QUERY)
+// =========================================================================
+onValue(historyQueryRef, (snapshot) => {
+    const historyList = [];
+    snapshot.forEach((childSnapshot) => {
+        const key = childSnapshot.key;
+        const entry = childSnapshot.val();
+        historyList.push({
+            id: key,
+            ...entry
+        });
+    });
 
+    // Balik urutan list agar data terbaru tampil di paling atas tabel
+    const reversedHistory = [...historyList].reverse();
+
+    // Update charts dengan urutan kronologis (historyList)
+    updateCharts(historyList);
+
+    // Update Counter
+    elHistoryCount.innerText = `${historyList.length} entri`;
+
+    // Render data di tabel
+    if (reversedHistory.length === 0) {
+        elHistoryTbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="history-empty">Belum ada riwayat data tersimpan.</td>
+            </tr>
+        `;
+    } else {
+        elHistoryTbody.innerHTML = reversedHistory.map(entry => {
+            let formattedTime = "-";
+            if (entry.timestamp) {
+                const dateObj = new Date(entry.timestamp);
+                if (!isNaN(dateObj.getTime())) {
+                    const d = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' });
+                    const t = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    formattedTime = `${d} ${t}`;
+                } else {
+                    formattedTime = String(entry.timestamp).substring(5, 16).replace('T', ' ');
+                }
+            }
+
+            const pm25 = entry.pm25 !== undefined ? entry.pm25.toFixed(1) : '0.0';
+            const pm10 = entry.pm10 !== undefined ? entry.pm10.toFixed(1) : '0.0';
+            const co   = entry.co !== undefined ? entry.co.toFixed(2) : '0.00';
+            const ispu = entry.ispu_akhir !== undefined ? entry.ispu_akhir : '-';
+            const kat  = entry.kategori || '-';
+            const crit = entry.paramKritis || '-';
+            const fan  = entry.exhaustFan || '-';
+            const purif = entry.purifier || '-';
+
+            // Klasifikasi badge untuk kategori di tabel
+            let ispuBadgeClass = "history-badge";
+            if (kat === 'Baik') ispuBadgeClass += " ispu-baik";
+            else if (kat === 'Sedang') ispuBadgeClass += " ispu-sedang";
+            else if (kat === 'Tidak Sehat') ispuBadgeClass += " ispu-tidak-sehat";
+            else if (kat === 'Sangat Tidak Sehat') ispuBadgeClass += " ispu-sangat-tidak-sehat";
+            else if (kat === 'Berbahaya') ispuBadgeClass += " ispu-berbahaya";
+
+            // Class badge exhaust fan & purifier
+            const fanBadgeClass = `history-badge ${fan === 'ON' ? 'fan-on' : 'fan-off'}`;
+            const purifBadgeClass = `history-badge ${purif === 'ON' ? 'fan-on' : 'fan-off'}`;
+
+            return `
+                <tr>
+                    <td>${formattedTime}</td>
+                    <td>${pm25} <span class="card-unit">µg/m³</span></td>
+                    <td>${pm10} <span class="card-unit">µg/m³</span></td>
+                    <td>${co} <span class="card-unit">ppm</span></td>
+                    <td><strong>${ispu}</strong></td>
+                    <td><span class="${ispuBadgeClass}">${kat}</span></td>
+                    <td><span class="ispu-inline-badge">${crit}</span></td>
+                    <td><span class="${fanBadgeClass}">${fan}</span></td>
+                    <td><span class="${purifBadgeClass}">${purif}</span></td>
+                </tr>
+            `;
+        }).join('');
+    }
+});
