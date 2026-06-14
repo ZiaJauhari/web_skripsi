@@ -1,6 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getDatabase, ref, onValue, query, limitToLast, set, update } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
-
+import { getDatabase, ref, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
 // =========================================================================
 // 1. CONFIGURASI FIREBASE
@@ -342,17 +341,8 @@ onValue(airQualityRef, (snapshot) => {
                 elLastUpdate.innerText = String(data.timestamp);
             }
         }
-
-        // MQ-135 Ro Aktif
-        const roVal = data.calibration?.ro_ohm !== undefined ? data.calibration.ro_ohm : null;
-        if (roVal !== null) {
-            document.getElementById('val-ro-active').innerText = `${roVal.toFixed(0)} Ω`;
-        } else {
-            document.getElementById('val-ro-active').innerText = '-';
-        }
     }
 });
-
 
 // =========================================================================
 // 5. RIWAYAT DATA & GRAFIK (REAL-TIME HISTORY QUERY)
@@ -435,152 +425,3 @@ onValue(historyQueryRef, (snapshot) => {
         }).join('');
     }
 });
-
-// =========================================================================
-// 6. PANEL KONTROL & KALIBRASI LOGIC
-// =========================================================================
-let isConfigLoaded = false;
-const configRef = ref(db, "config");
-
-// Sinkronisasi real-time nilai input konfigurasi dari Firebase
-onValue(configRef, (snapshot) => {
-    const config = snapshot.val();
-    if (config) {
-        // Hanya isi form otomatis pertama kali agar tidak mengganggu ketikan user
-        if (!isConfigLoaded) {
-            if (config.calibration?.pm25_multiplier !== undefined) {
-                document.getElementById('input-pm25-mult').value = config.calibration.pm25_multiplier;
-            }
-            if (config.calibration?.pm10_multiplier !== undefined) {
-                document.getElementById('input-pm10-mult').value = config.calibration.pm10_multiplier;
-            }
-            if (config.calibration?.use_humidity_corr !== undefined) {
-                document.getElementById('input-use-humidity-corr').checked = config.calibration.use_humidity_corr;
-            }
-            if (config.thresholds?.asap_max !== undefined) {
-                document.getElementById('input-thresh-co').value = config.thresholds.asap_max;
-            }
-            if (config.thresholds?.pm25_tidak_sehat !== undefined) {
-                document.getElementById('input-thresh-pm25').value = config.thresholds.pm25_tidak_sehat;
-            }
-            if (config.thresholds?.pm10_tidak_sehat !== undefined) {
-                document.getElementById('input-thresh-pm10').value = config.thresholds.pm10_tidak_sehat;
-            }
-            isConfigLoaded = true;
-        }
-
-        // Tampilkan status kalibrasi MQ-135 real-time
-        const calib = config.calibration || {};
-        const calibStatus = calib.status || "Belum Kalibrasi";
-        const progress = calib.progress || 0;
-        const isTriggered = calib.trigger || false;
-
-        document.getElementById('val-calib-status').innerText = calibStatus;
-
-        const progressWrap = document.getElementById('calib-progress-wrap');
-        const progressBar = document.getElementById('calib-progress-bar');
-        const btnTrigger = document.getElementById('btn-trigger-calib');
-
-        if (isTriggered || progress > 0) {
-            progressWrap.style.display = 'block';
-            progressBar.style.width = `${progress}%`;
-            btnTrigger.disabled = true;
-            btnTrigger.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Kalibrasi (${progress}%)`;
-            document.getElementById('val-calib-status').style.color = 'var(--accent-blue)';
-        } else {
-            progressWrap.style.display = 'none';
-            progressBar.style.width = `0%`;
-            btnTrigger.disabled = false;
-            btnTrigger.innerHTML = `<i class="fas fa-sync-alt"></i> Jalankan Kalibrasi MQ-135`;
-
-            if (calibStatus === "Terkalibrasi") {
-                document.getElementById('val-calib-status').style.color = 'var(--accent-green)';
-            } else if (calibStatus.startsWith("Gagal")) {
-                document.getElementById('val-calib-status').style.color = 'var(--accent-red)';
-            } else {
-                document.getElementById('val-calib-status').style.color = 'var(--text-light)';
-            }
-        }
-    } else {
-        // Jika data config kosong di Firebase, set default agar bisa langsung tersimpan saat user klik save
-        document.getElementById('val-calib-status').innerText = "Belum Konfigurasi";
-    }
-});
-
-// Event Handler Simpan Pengaturan
-document.getElementById('btn-save-settings').addEventListener('click', () => {
-    const pm25Mult = parseFloat(document.getElementById('input-pm25-mult').value);
-    const pm10Mult = parseFloat(document.getElementById('input-pm10-mult').value);
-    const useHumidCorr = document.getElementById('input-use-humidity-corr').checked;
-    const threshCo = parseInt(document.getElementById('input-thresh-co').value);
-    const threshPm25 = parseInt(document.getElementById('input-thresh-pm25').value);
-    const threshPm10 = parseInt(document.getElementById('input-thresh-pm10').value);
-
-    if (isNaN(pm25Mult) || isNaN(pm10Mult) || isNaN(threshCo) || isNaN(threshPm25) || isNaN(threshPm10)) {
-        showToast("Harap masukkan nilai konfigurasi yang valid!", "error");
-        return;
-    }
-
-    const updates = {};
-    updates['config/calibration/pm25_multiplier'] = pm25Mult;
-    updates['config/calibration/pm10_multiplier'] = pm10Mult;
-    updates['config/calibration/use_humidity_corr'] = useHumidCorr;
-    updates['config/thresholds/asap_max'] = threshCo;
-    updates['config/thresholds/pm25_tidak_sehat'] = threshPm25;
-    updates['config/thresholds/pm10_tidak_sehat'] = threshPm10;
-
-    update(ref(db), updates)
-        .then(() => {
-            showToast("Pengaturan berhasil disimpan ke Firebase!", "success");
-        })
-        .catch((error) => {
-            showToast(`Gagal menyimpan: ${error.message}`, "error");
-        });
-});
-
-// Event Handler Trigger Kalibrasi MQ-135
-document.getElementById('btn-trigger-calib').addEventListener('click', () => {
-    const confirmMsg = "PASTIKAN sensor MQ-135 saat ini sedang berada di udara bersih.\n\nSistem akan mengambil sampel selama 120 detik untuk menghitung ulang nilai resistansi baseline (Ro).\n\nApakah Anda yakin ingin memulai kalibrasi?";
-    if (confirm(confirmMsg)) {
-        const calibTriggerRef = ref(db, "config/calibration");
-        update(calibTriggerRef, {
-            trigger: true,
-            progress: 1,
-            status: "Memulai..."
-        })
-        .then(() => {
-            showToast("Kalibrasi MQ-135 telah dimulai!", "info");
-        })
-        .catch((error) => {
-            showToast(`Gagal memulai kalibrasi: ${error.message}`, "error");
-        });
-    }
-});
-
-// Helper Toast Notification
-function showToast(message, type = "success") {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    let icon = '<i class="fas fa-check-circle"></i>';
-    if (type === "error") {
-        icon = '<i class="fas fa-exclamation-circle"></i>';
-    } else if (type === "info") {
-        icon = '<i class="fas fa-info-circle"></i>';
-    }
-
-    toast.innerHTML = `${icon} <span>${message}</span>`;
-    container.appendChild(toast);
-
-    // Fade out & hapus toast
-    setTimeout(() => {
-        toast.style.animation = 'slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) reverse';
-        toast.addEventListener('animationend', () => {
-            toast.remove();
-        });
-    }, 4000);
-}
-
